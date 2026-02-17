@@ -325,14 +325,9 @@ document.addEventListener('keyup', (e) => { keys[e.key.toLowerCase()] = false; }
 document.addEventListener('mousemove', (e) => {
   mouseX = e.clientX;
   mouseY = e.clientY;
-  if (document.pointerLockElement === canvas) {
-    localPlayer.angle += e.movementX * 0.003;
-  }
 });
 
-canvas.addEventListener('click', () => {
-  if (started) canvas.requestPointerLock?.();
-});
+canvas.addEventListener('click', () => {});
 
 document.getElementById('startBtn').addEventListener('click', () => {
   started = true;
@@ -342,7 +337,7 @@ document.getElementById('startBtn').addEventListener('click', () => {
   if (name && ws && ws.readyState === WebSocket.OPEN) {
     ws.send(JSON.stringify({ type: "set_name", name }));
   }
-  canvas.requestPointerLock?.();
+  canvas.focus();
 });
 
 // Allow Enter in name input to start
@@ -455,8 +450,8 @@ function update() {
   if (keys['d']) { dx -= sin * SPEED; dy += cos * SPEED; }
   if (dx !== 0 || dy !== 0) tryMove(localPlayer.x + dx, localPlayer.y + dy);
 
-  // Mouse aim (when no pointer lock)
-  if (document.pointerLockElement !== canvas) {
+  // Mouse aim — always use mouse position
+  {
     const cx = canvas.width / 2, cy = canvas.height / 2;
     localPlayer.angle = Math.atan2(mouseY - cy, mouseX - cx);
   }
