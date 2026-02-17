@@ -7,17 +7,29 @@ const app = express();
 const server = http.createServer(app);
 const wss = new WebSocket.Server({ server });
 
-// Serve static files from /public
 app.use(express.static(path.join(__dirname, "public")));
 
 // ── Game State ──────────────────────────────────────────────
-const players = new Map(); // id -> { x, y, color, name }
+const players = new Map();
 let nextId = 1;
 
 const COLORS = [
   "#FF6B6B", "#4ECDC4", "#45B7D1", "#96CEB4",
   "#FFEAA7", "#DDA0DD", "#98D8C8", "#F7DC6F",
   "#BB8FCE", "#85C1E9", "#F0B27A", "#82E0AA",
+];
+
+const ROOM_SIZE = 800;
+
+const SPAWNS = [
+  { x: 100, y: 700 },
+  { x: 700, y: 700 },
+  { x: 100, y: 100 },
+  { x: 700, y: 100 },
+  { x: 400, y: 100 },
+  { x: 400, y: 700 },
+  { x: 100, y: 400 },
+  { x: 700, y: 400 },
 ];
 
 function broadcast(data, excludeWs) {
@@ -38,44 +50,30 @@ function broadcastAll(data) {
   });
 }
 
-// ── WebSocket Handling ──────────────────────────────────────
 wss.on("connection", (ws) => {
   const id = nextId++;
   const color = COLORS[(id - 1) % COLORS.length];
-  const player = {
-    x: 200 + Math.random() * 400,
-    y: 200 + Math.random() * 200,
-    color,
-    name: `Player ${id}`,
-  };
+  const spawn = SPAWNS[(id - 1) % SPAWNS.length];
+  const player = { x: spawn.x, y: spawn.y, angle: 0, color, name: `Player ${id}` };
 
   players.set(id, player);
 
-  // Send this player their id + all existing players
-  ws.send(JSON.stringify({
-    type: "init",
-    id,
-    players: Object.fromEntries(players),
-  }));
-
-  // Tell everyone else about the new player
+  ws.send(JSON.stringify({ type: "init", id, players: Object.fromEntries(players) }));
   broadcast({ type: "player_joined", id, player }, ws);
-
   console.log(`Player ${id} connected (${wss.clients.size} online)`);
 
   ws.on("message", (raw) => {
     try {
       const msg = JSON.parse(raw);
-
       if (msg.type === "move") {
         const p = players.get(id);
         if (p) {
           p.x = msg.x;
           p.y = msg.y;
-          broadcast({ type: "player_moved", id, x: msg.x, y: msg.y }, ws);
+          p.angle = msg.angle;
+          broadcast({ type: "player_moved", id, x: msg.x, y: msg.y, angle: msg.angle }, ws);
         }
       }
-
       if (msg.type === "set_name") {
         const p = players.get(id);
         if (p) {
@@ -83,9 +81,7 @@ wss.on("connection", (ws) => {
           broadcastAll({ type: "player_renamed", id, name: p.name });
         }
       }
-    } catch (e) {
-      // ignore bad messages
-    }
+    } catch (e) {}
   });
 
   ws.on("close", () => {
@@ -95,8 +91,5 @@ wss.on("connection", (ws) => {
   });
 });
 
-// ── Start Server ────────────────────────────────────────────
 const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
-});
+server.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
