@@ -15,53 +15,32 @@
   canvas { display: block; }
 
   #overlay {
-    position: fixed;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
     background: #000;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    z-index: 10;
-    transition: opacity 1.5s ease;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    z-index: 10; transition: opacity 1.5s ease;
   }
   #overlay.hidden { opacity: 0; pointer-events: none; }
   #overlay h1 {
-    color: #8b0000;
-    font-size: 3rem;
-    letter-spacing: 0.5em;
-    text-transform: uppercase;
-    animation: flicker 3s infinite;
-    margin-bottom: 1rem;
+    color: #8b0000; font-size: 3rem;
+    letter-spacing: 0.5em; text-transform: uppercase;
+    animation: flicker 3s infinite; margin-bottom: 1rem;
   }
   #overlay p { color: #555; font-size: 0.9rem; letter-spacing: 0.2em; }
-  #overlay .name-row {
-    margin-top: 1.5rem;
-    display: flex; gap: 10px; align-items: center;
-  }
+  #overlay .name-row { margin-top: 1.5rem; display: flex; gap: 10px; align-items: center; }
   #overlay .name-row input {
-    background: rgba(255,255,255,0.05);
-    border: 1px solid #8b0000;
-    color: #ccc;
-    padding: 10px 16px;
-    font-family: 'Courier New', monospace;
-    font-size: 0.9rem;
-    letter-spacing: 0.1em;
-    outline: none; width: 200px;
+    background: rgba(255,255,255,0.05); border: 1px solid #8b0000;
+    color: #ccc; padding: 10px 16px;
+    font-family: 'Courier New', monospace; font-size: 0.9rem;
+    letter-spacing: 0.1em; outline: none; width: 200px;
   }
   #overlay .name-row input:focus { border-color: #c0392b; }
   #overlay .start-btn {
-    margin-top: 1.5rem;
-    padding: 12px 40px;
-    background: none;
-    border: 1px solid #8b0000;
-    color: #8b0000;
-    font-family: 'Courier New', monospace;
-    font-size: 1rem;
-    letter-spacing: 0.3em;
-    cursor: pointer;
-    transition: all 0.3s;
+    margin-top: 1.5rem; padding: 12px 40px; background: none;
+    border: 1px solid #8b0000; color: #8b0000;
+    font-family: 'Courier New', monospace; font-size: 1rem;
+    letter-spacing: 0.3em; cursor: pointer; transition: all 0.3s;
   }
   #overlay .start-btn:hover { background: #8b0000; color: #000; }
 
@@ -78,6 +57,16 @@
     pointer-events: none; text-align: right; line-height: 1.8;
   }
   #hud .online { color: #8b0000; }
+
+  #room-hud {
+    position: fixed; top: 16px; left: 50%;
+    transform: translateX(-50%);
+    color: #444; font-size: 0.7rem;
+    letter-spacing: 0.2em; z-index: 5;
+    pointer-events: none; text-transform: uppercase;
+    transition: color 0.5s;
+  }
+  #room-hud span { color: #8b0000; }
 
   #connection-indicator {
     position: fixed; top: 16px; left: 20px;
@@ -106,32 +95,34 @@
     width: 28px; height: 28px; border-radius: 4px;
     border: 1px solid #333; background: rgba(255,255,255,0.03);
     display: flex; align-items: center; justify-content: center;
-    font-size: 12px; color: #444;
-    transition: all 0.4s ease;
+    font-size: 12px; color: #444; transition: all 0.4s ease;
   }
   .stone-indicator.active {
     border-color: #4a7; background: rgba(50, 180, 100, 0.15);
     color: #4a7; box-shadow: 0 0 10px rgba(50, 180, 100, 0.3);
   }
   .stone-indicator.reset-flash {
-    border-color: #8b0000; background: rgba(139, 0, 0, 0.2);
-    color: #8b0000;
+    border-color: #8b0000; background: rgba(139, 0, 0, 0.2); color: #8b0000;
   }
 
-  #win-overlay {
+  #transition-overlay {
     position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(0,0,0,0.85);
-    display: none; flex-direction: column;
+    background: #000; z-index: 15;
+    display: flex; flex-direction: column;
     align-items: center; justify-content: center;
-    z-index: 20;
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.8s ease;
   }
-  #win-overlay.show { display: flex; }
-  #win-overlay h2 {
-    color: #4a7; font-size: 2rem;
+  #transition-overlay.active { opacity: 1; pointer-events: all; }
+  #transition-overlay h2 {
+    color: #555; font-size: 1.2rem;
     letter-spacing: 0.4em; text-transform: uppercase;
+  }
+  #transition-overlay .room-num {
+    color: #8b0000; font-size: 2.5rem;
+    letter-spacing: 0.3em; margin-top: 0.5rem;
     animation: flicker 3s infinite;
   }
-  #win-overlay p { color: #555; margin-top: 1rem; font-size: 0.9rem; letter-spacing: 0.2em; }
 </style>
 </head>
 <body>
@@ -139,7 +130,7 @@
 <div id="overlay">
   <h1>The Dark Room</h1>
   <p>WASD to move · Mouse to aim flashlight</p>
-  <p style="margin-top: 0.5rem; color: #444;">Find the stones. Step on them in order.</p>
+  <p style="margin-top: 0.5rem; color: #444;">Find the numbered stones. Step on them in order to open the door.</p>
   <div class="name-row">
     <input type="text" id="nameInput" placeholder="Enter your name..." maxlength="20" />
   </div>
@@ -153,21 +144,23 @@
   <span class="label" id="connLabel">connecting</span>
 </div>
 
+<div id="room-hud">ROOM <span id="roomNum">1</span></div>
+
 <div id="hud">
   <span class="online" id="onlineCount">0</span> ONLINE
 </div>
 
 <div id="puzzle-hud">
-  <div class="stone-indicator" id="si-1">1</div>
-  <div class="stone-indicator" id="si-2">2</div>
-  <div class="stone-indicator" id="si-3">3</div>
-  <div class="stone-indicator" id="si-4">4</div>
-  <div class="stone-indicator" id="si-5">5</div>
+  <div class="stone-indicator" id="si-1">?</div>
+  <div class="stone-indicator" id="si-2">?</div>
+  <div class="stone-indicator" id="si-3">?</div>
+  <div class="stone-indicator" id="si-4">?</div>
+  <div class="stone-indicator" id="si-5">?</div>
 </div>
 
-<div id="win-overlay">
-  <h2>The Door Opens</h2>
-  <p>You have escaped the dark room.</p>
+<div id="transition-overlay">
+  <h2>ENTERING</h2>
+  <div class="room-num" id="transRoomNum">ROOM 2</div>
 </div>
 
 <script>
@@ -183,12 +176,13 @@ const LERP_FACTOR = 0.15;
 const ANGLE_LERP = 0.12;
 const SPEED = 2.2;
 const STONE_SIZE = 32;
+const DOOR = { x: 400, y: 8, width: 60, height: 16 };
 
 // ═══════════════════════════════════════════════════════════
 //  STATE
 // ═══════════════════════════════════════════════════════════
 let myId = null;
-let localPlayer = { x: 400, y: 400, angle: 0 };
+let localPlayer = { x: 400, y: 700, angle: 0 };
 let remotePlayers = {};
 let keys = {};
 let mouseX = 0, mouseY = 0;
@@ -197,21 +191,12 @@ let time = 0;
 let ws = null;
 let connected = false;
 
-// Puzzle state (synced from server)
+// Room / puzzle state
+let stones = [];
 let puzzleProgress = 0;
 let doorOpen = false;
-let resetFlashTime = 0; // local time when reset happened
-
-// Stone positions (sent from server on init, but we define defaults)
-let stones = [
-  { x: 300, y: 620, num: 1 },
-  { x: 350, y: 540, num: 2 },
-  { x: 400, y: 460, num: 3 },
-  { x: 450, y: 380, num: 4 },
-  { x: 500, y: 300, num: 5 },
-];
-
-const DOOR = { x: 400, y: 8, width: 60, height: 16 };
+let resetFlashTime = -10;
+let roomNumber = 1;
 
 const canvas = document.getElementById('game');
 const ctx = canvas.getContext('2d');
@@ -224,7 +209,7 @@ resize();
 window.addEventListener('resize', resize);
 
 // ═══════════════════════════════════════════════════════════
-//  ROOM OBJECTS
+//  ROOM OBJECTS (fixed per room)
 // ═══════════════════════════════════════════════════════════
 const columns = [
   { x: 250, y: 250, r: 28 },
@@ -232,18 +217,14 @@ const columns = [
   { x: 250, y: 550, r: 28 },
   { x: 550, y: 550, r: 28 },
 ];
-
 const pedestal = { x: 400, y: 400, size: 36 };
 
 const particles = [];
 for (let i = 0; i < 80; i++) {
   particles.push({
-    x: Math.random() * ROOM_SIZE,
-    y: Math.random() * ROOM_SIZE,
-    vx: (Math.random() - 0.5) * 0.3,
-    vy: (Math.random() - 0.5) * 0.3,
-    size: Math.random() * 2 + 0.5,
-    alpha: Math.random() * 0.5 + 0.1,
+    x: Math.random() * ROOM_SIZE, y: Math.random() * ROOM_SIZE,
+    vx: (Math.random() - 0.5) * 0.3, vy: (Math.random() - 0.5) * 0.3,
+    size: Math.random() * 2 + 0.5, alpha: Math.random() * 0.5 + 0.1,
   });
 }
 
@@ -251,18 +232,23 @@ for (let i = 0; i < 80; i++) {
 //  PUZZLE HUD
 // ═══════════════════════════════════════════════════════════
 function updatePuzzleHUD(isReset) {
-  for (let i = 1; i <= 5; i++) {
-    const el = document.getElementById(`si-${i}`);
+  // The HUD shows the step order numbers for stones that have been found
+  // We sort stones by stepOrder to display in the HUD
+  const sorted = [...stones].sort((a, b) => a.stepOrder - b.stepOrder);
+  for (let i = 0; i < 5; i++) {
+    const el = document.getElementById(`si-${i + 1}`);
     el.classList.remove('active', 'reset-flash');
-    if (i <= puzzleProgress) {
-      el.classList.add('active');
+    if (sorted[i]) {
+      el.textContent = sorted[i].displayNum;
+      if (i < puzzleProgress) el.classList.add('active');
+    } else {
+      el.textContent = '?';
     }
   }
+
   if (isReset) {
-    // Brief red flash on all indicators
     for (let i = 1; i <= 5; i++) {
-      const el = document.getElementById(`si-${i}`);
-      el.classList.add('reset-flash');
+      document.getElementById(`si-${i}`).classList.add('reset-flash');
     }
     setTimeout(() => {
       for (let i = 1; i <= 5; i++) {
@@ -272,11 +258,14 @@ function updatePuzzleHUD(isReset) {
     resetFlashTime = time;
   }
 
-  if (doorOpen) {
-    setTimeout(() => {
-      document.getElementById('win-overlay').classList.add('show');
-    }, 1000);
-  }
+  document.getElementById('roomNum').textContent = roomNumber;
+}
+
+function showTransition(newRoomNum) {
+  const el = document.getElementById('transition-overlay');
+  document.getElementById('transRoomNum').textContent = `ROOM ${newRoomNum}`;
+  el.classList.add('active');
+  setTimeout(() => { el.classList.remove('active'); }, 2000);
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -293,9 +282,7 @@ function wsConnect() {
   };
 
   ws.onclose = () => {
-    connected = false;
-    myId = null;
-    remotePlayers = {};
+    connected = false; myId = null; remotePlayers = {};
     document.getElementById('connDot').className = 'dot off';
     document.getElementById('connLabel').textContent = 'reconnecting';
     setTimeout(wsConnect, 2000);
@@ -320,13 +307,13 @@ function wsConnect() {
             color: p.color, name: p.name,
           };
         }
-        // Puzzle state from server
-        if (msg.puzzle) {
-          puzzleProgress = msg.puzzle.progress;
-          doorOpen = msg.puzzle.doorOpen;
-          if (msg.puzzle.stones) stones = msg.puzzle.stones;
-          updatePuzzleHUD(false);
+        if (msg.room) {
+          stones = msg.room.stones;
+          puzzleProgress = msg.room.progress;
+          doorOpen = msg.room.doorOpen;
+          roomNumber = msg.room.roomNumber;
         }
+        updatePuzzleHUD(false);
         const nameVal = document.getElementById('nameInput').value.trim();
         if (nameVal && ws.readyState === WebSocket.OPEN) {
           ws.send(JSON.stringify({ type: "set_name", name: nameVal }));
@@ -363,6 +350,32 @@ function wsConnect() {
         puzzleProgress = msg.progress;
         doorOpen = msg.doorOpen;
         updatePuzzleHUD(msg.reset);
+        break;
+      }
+      case "new_room": {
+        // Room transition!
+        stones = msg.room.stones;
+        puzzleProgress = msg.room.progress;
+        doorOpen = msg.room.doorOpen;
+        roomNumber = msg.room.roomNumber;
+
+        // Update all player positions from server
+        const allP = msg.players;
+        if (allP[myId]) {
+          localPlayer.x = allP[myId].x;
+          localPlayer.y = allP[myId].y;
+        }
+        for (const [id, p] of Object.entries(allP)) {
+          if (Number(id) === myId) continue;
+          const rp = remotePlayers[id];
+          if (rp) {
+            rp.x = p.x; rp.y = p.y;
+            rp.tx = p.x; rp.ty = p.y;
+          }
+        }
+
+        updatePuzzleHUD(false);
+        showTransition(roomNumber);
         break;
       }
     }
@@ -412,37 +425,41 @@ function circleCollides(px, py, pr, cx, cy, cr) {
 
 function tryMove(nx, ny) {
   const margin = PLAYER_RADIUS + WALL_THICKNESS;
+  const dLeft = DOOR.x - DOOR.width / 2;
+  const dRight = DOOR.x + DOOR.width / 2;
+
+  // Check if player is in the door zone horizontally
+  const inDoorZone = nx > dLeft + PLAYER_RADIUS && nx < dRight - PLAYER_RADIUS;
+
+  // Clamp to room boundaries
   nx = Math.max(margin, Math.min(ROOM_SIZE - margin, nx));
-  ny = Math.max(margin, Math.min(ROOM_SIZE - margin, ny));
+  // For Y: allow moving past the top wall if door is open and player is in door zone
+  if (doorOpen && inDoorZone) {
+    ny = Math.max(-20, Math.min(ROOM_SIZE - margin, ny)); // allow past top wall
+  } else {
+    ny = Math.max(margin, Math.min(ROOM_SIZE - margin, ny));
+  }
 
   for (const col of columns) {
     if (circleCollides(nx, ny, PLAYER_RADIUS, col.x, col.y, col.r)) {
       const dx = nx - col.x, dy = ny - col.y;
       const dist = Math.sqrt(dx * dx + dy * dy);
       const push = (PLAYER_RADIUS + col.r) / dist;
-      nx = col.x + dx * push;
-      ny = col.y + dy * push;
+      nx = col.x + dx * push; ny = col.y + dy * push;
     }
   }
 
-  // Pedestal collision
   const ps = pedestal.size / 2 + PLAYER_RADIUS;
   if (nx > pedestal.x - ps && nx < pedestal.x + ps &&
       ny > pedestal.y - ps && ny < pedestal.y + ps) {
     const dx = nx - pedestal.x, dy = ny - pedestal.y;
-    if (Math.abs(dx) > Math.abs(dy)) {
-      nx = pedestal.x + Math.sign(dx) * ps;
-    } else {
-      ny = pedestal.y + Math.sign(dy) * ps;
-    }
+    if (Math.abs(dx) > Math.abs(dy)) nx = pedestal.x + Math.sign(dx) * ps;
+    else ny = pedestal.y + Math.sign(dy) * ps;
   }
 
-  // Door collision — block passage unless door is open
+  // Door — block passage unless open
   if (!doorOpen) {
-    const dLeft = DOOR.x - DOOR.width / 2;
-    const dRight = DOOR.x + DOOR.width / 2;
     const dBottom = DOOR.y + DOOR.height;
-    // Block if player is near the top wall door area
     if (ny - PLAYER_RADIUS < dBottom && nx > dLeft && nx < dRight) {
       ny = dBottom + PLAYER_RADIUS;
     }
@@ -474,7 +491,6 @@ function castRay(ox, oy, angle, maxDist) {
     const y = oy + Math.sin(angle) * d;
     if (x <= WALL_THICKNESS || x >= ROOM_SIZE - WALL_THICKNESS ||
         y <= WALL_THICKNESS || y >= ROOM_SIZE - WALL_THICKNESS) {
-      // Allow rays through the door opening if door is open
       if (doorOpen) {
         const dLeft = DOOR.x - DOOR.width / 2;
         const dRight = DOOR.x + DOOR.width / 2;
@@ -507,15 +523,6 @@ function buildLightPoly(px, py, pAngle) {
   return poly;
 }
 
-// Get total light at a world position from all flashlights
-function getTotalLight(wx, wy) {
-  let total = isInFlashlight(wx, wy, localPlayer.x, localPlayer.y, localPlayer.angle);
-  for (const rp of Object.values(remotePlayers)) {
-    total = Math.max(total, isInFlashlight(wx, wy, rp.x, rp.y, rp.angle));
-  }
-  return total;
-}
-
 // ═══════════════════════════════════════════════════════════
 //  UPDATE
 // ═══════════════════════════════════════════════════════════
@@ -545,9 +552,7 @@ function update() {
                   Math.abs(localPlayer.angle - lastSentAngle) > 0.02;
     if (moved) {
       ws.send(JSON.stringify({ type: "move", x: localPlayer.x, y: localPlayer.y, angle: localPlayer.angle }));
-      lastSentX = localPlayer.x;
-      lastSentY = localPlayer.y;
-      lastSentAngle = localPlayer.angle;
+      lastSentX = localPlayer.x; lastSentY = localPlayer.y; lastSentAngle = localPlayer.angle;
     }
   }
 
@@ -572,8 +577,7 @@ function update() {
 // ═══════════════════════════════════════════════════════════
 function drawFlashlightPass(px, py, pAngle, tintColor, intensity) {
   const cx = canvas.width / 2, cy = canvas.height / 2;
-  const offsetX = cx - localPlayer.x;
-  const offsetY = cy - localPlayer.y;
+  const offsetX = cx - localPlayer.x, offsetY = cy - localPlayer.y;
   const lightPoly = buildLightPoly(px, py, pAngle);
   const flicker = 0.95 + Math.sin(time * 8 + px) * 0.03 + Math.sin(time * 13 + py) * 0.02;
 
@@ -589,9 +593,7 @@ function drawFlashlightPass(px, py, pAngle, tintColor, intensity) {
 
   const grad = ctx.createRadialGradient(px, py, 0, px, py, FLASHLIGHT_RANGE);
   if (tintColor) {
-    const r = parseInt(tintColor.slice(1,3),16);
-    const g = parseInt(tintColor.slice(3,5),16);
-    const b = parseInt(tintColor.slice(5,7),16);
+    const r = parseInt(tintColor.slice(1,3),16), g = parseInt(tintColor.slice(3,5),16), b = parseInt(tintColor.slice(5,7),16);
     grad.addColorStop(0, `rgba(${r}, ${g}, ${b}, ${0.25 * flicker * intensity})`);
     grad.addColorStop(0.3, `rgba(${Math.floor(r*0.8)}, ${Math.floor(g*0.8)}, ${Math.floor(b*0.7)}, ${0.15 * flicker * intensity})`);
     grad.addColorStop(0.7, `rgba(${Math.floor(r*0.5)}, ${Math.floor(g*0.5)}, ${Math.floor(b*0.4)}, ${0.05 * flicker * intensity})`);
@@ -620,37 +622,30 @@ function drawFlashlightPass(px, py, pAngle, tintColor, intensity) {
   }
   ctx.globalAlpha = 1;
 
-  // Walls
+  // Walls (with door gap)
+  const dLeft = DOOR.x - DOOR.width / 2, dRight = DOOR.x + DOOR.width / 2;
   ctx.fillStyle = '#3a3028';
-  // Top wall — with door gap
-  const dLeft = DOOR.x - DOOR.width / 2;
-  const dRight = DOOR.x + DOOR.width / 2;
   ctx.fillRect(0, 0, dLeft, WALL_THICKNESS);
   ctx.fillRect(dRight, 0, ROOM_SIZE - dRight, WALL_THICKNESS);
-  // Bottom, left, right walls
   ctx.fillRect(0, ROOM_SIZE - WALL_THICKNESS, ROOM_SIZE, WALL_THICKNESS);
   ctx.fillRect(0, 0, WALL_THICKNESS, ROOM_SIZE);
   ctx.fillRect(ROOM_SIZE - WALL_THICKNESS, 0, WALL_THICKNESS, ROOM_SIZE);
 
-  // Door frame
+  // Door
   if (!doorOpen) {
-    // Closed door — heavy wooden look
     const doorLi = isInFlashlight(DOOR.x, DOOR.y + DOOR.height/2, px, py, pAngle);
     if (doorLi > 0.01) {
       ctx.fillStyle = `rgba(60, 40, 25, ${doorLi})`;
       ctx.fillRect(dLeft, 0, DOOR.width, WALL_THICKNESS);
-      // Iron bands
       ctx.fillStyle = `rgba(100, 90, 70, ${doorLi * 0.6})`;
       ctx.fillRect(dLeft + 4, 4, DOOR.width - 8, 2);
       ctx.fillRect(dLeft + 4, WALL_THICKNESS - 6, DOOR.width - 8, 2);
-      // Lock symbol
       ctx.fillStyle = `rgba(180, 50, 50, ${doorLi * 0.8})`;
       ctx.beginPath();
       ctx.arc(DOOR.x, WALL_THICKNESS / 2, 3, 0, Math.PI * 2);
       ctx.fill();
     }
   } else {
-    // Open door — gap in wall, green glow
     const doorLi = isInFlashlight(DOOR.x, DOOR.y + DOOR.height/2, px, py, pAngle);
     if (doorLi > 0.005) {
       const escapeGlow = ctx.createRadialGradient(DOOR.x, 0, 0, DOOR.x, 0, 80);
@@ -678,14 +673,10 @@ function drawFlashlightPass(px, py, pAngle, tintColor, intensity) {
       cGrad.addColorStop(0.6, `rgba(80, 70, 55, ${ci})`);
       cGrad.addColorStop(1, `rgba(40, 35, 28, ${ci})`);
       ctx.fillStyle = cGrad;
-      ctx.beginPath();
-      ctx.arc(col.x, col.y, col.r, 0, Math.PI * 2);
-      ctx.fill();
+      ctx.beginPath(); ctx.arc(col.x, col.y, col.r, 0, Math.PI * 2); ctx.fill();
       ctx.strokeStyle = `rgba(150, 130, 100, ${ci * 0.3})`;
       ctx.lineWidth = 1;
-      ctx.beginPath();
-      ctx.arc(col.x, col.y, col.r, 0, Math.PI * 2);
-      ctx.stroke();
+      ctx.beginPath(); ctx.arc(col.x, col.y, col.r, 0, Math.PI * 2); ctx.stroke();
     }
   }
 
@@ -716,19 +707,16 @@ function drawFlashlightPass(px, py, pAngle, tintColor, intensity) {
   for (const stone of stones) {
     const si = isInFlashlight(stone.x, stone.y, px, py, pAngle);
     if (si > 0.01) {
-      const isActive = stone.num <= puzzleProgress;
+      const isActive = stone.stepOrder <= puzzleProgress;
       const hs = STONE_SIZE / 2;
       const isResetFlashing = (time - resetFlashTime) < 0.5;
 
-      // Shadow
       ctx.fillStyle = `rgba(10, 8, 5, ${si * 0.5})`;
       ctx.beginPath();
       ctx.ellipse(stone.x + 2, stone.y + 2, hs + 2, hs * 0.6 + 2, 0, 0, Math.PI * 2);
       ctx.fill();
 
-      // Stone slab (rounded rectangle via ellipse)
       if (isActive) {
-        // Activated — green glow
         const gGrad = ctx.createRadialGradient(stone.x, stone.y, 0, stone.x, stone.y, hs * 1.8);
         gGrad.addColorStop(0, `rgba(50, 180, 100, ${0.25 * si})`);
         gGrad.addColorStop(1, 'rgba(50, 180, 100, 0)');
@@ -736,63 +724,49 @@ function drawFlashlightPass(px, py, pAngle, tintColor, intensity) {
         ctx.beginPath();
         ctx.ellipse(stone.x, stone.y, hs * 1.8, hs * 1.2, 0, 0, Math.PI * 2);
         ctx.fill();
-
         ctx.fillStyle = `rgba(40, 120, 70, ${si})`;
       } else if (isResetFlashing) {
-        // Red flash on reset
         ctx.fillStyle = `rgba(139, 0, 0, ${si * 0.8})`;
       } else {
-        // Inactive stone
         ctx.fillStyle = `rgba(70, 60, 50, ${si})`;
       }
 
-      // Draw stone shape
       ctx.beginPath();
       ctx.ellipse(stone.x, stone.y, hs, hs * 0.65, 0, 0, Math.PI * 2);
       ctx.fill();
 
-      // Stone border
-      ctx.strokeStyle = isActive
-        ? `rgba(80, 200, 120, ${si * 0.6})`
-        : `rgba(100, 85, 65, ${si * 0.4})`;
+      ctx.strokeStyle = isActive ? `rgba(80, 200, 120, ${si * 0.6})` : `rgba(100, 85, 65, ${si * 0.4})`;
       ctx.lineWidth = 1.5;
       ctx.beginPath();
       ctx.ellipse(stone.x, stone.y, hs, hs * 0.65, 0, 0, Math.PI * 2);
       ctx.stroke();
 
-      // Number engraving
-      ctx.fillStyle = isActive
-        ? `rgba(180, 255, 200, ${si * 0.9})`
-        : `rgba(150, 130, 100, ${si * 0.7})`;
-      ctx.font = `bold 16px "Courier New", monospace`;
+      // Display number (the randomized number shown to players)
+      ctx.fillStyle = isActive ? `rgba(180, 255, 200, ${si * 0.9})` : `rgba(150, 130, 100, ${si * 0.7})`;
+      ctx.font = 'bold 16px "Courier New", monospace';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-      ctx.fillText(String(stone.num), stone.x, stone.y);
+      ctx.fillText(String(stone.displayNum), stone.x, stone.y);
     }
   }
 
-  // Dust particles
+  // Dust
   for (const p of particles) {
     const pi = isInFlashlight(p.x, p.y, px, py, pAngle);
     if (pi > 0.05) {
       ctx.fillStyle = `rgba(255, 240, 200, ${pi * p.alpha * 0.6 * intensity})`;
-      ctx.beginPath();
-      ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-      ctx.fill();
+      ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2); ctx.fill();
     }
   }
 
-  ctx.restore(); // end clip
-  ctx.restore(); // end world transform
+  ctx.restore(); // clip
+  ctx.restore(); // world
 }
 
 function drawShadows(px, py, pAngle) {
   const cx = canvas.width / 2, cy = canvas.height / 2;
-  const offsetX = cx - localPlayer.x;
-  const offsetY = cy - localPlayer.y;
-
   ctx.save();
-  ctx.translate(offsetX, offsetY);
+  ctx.translate(cx - localPlayer.x, cy - localPlayer.y);
   for (const col of columns) {
     const dx = col.x - px, dy = col.y - py;
     const dist = Math.sqrt(dx * dx + dy * dy);
@@ -804,12 +778,11 @@ function drawShadows(px, py, pAngle) {
       ctx.beginPath();
       ctx.moveTo(col.x + Math.cos(perpAngle) * col.r, col.y + Math.sin(perpAngle) * col.r);
       ctx.lineTo(col.x - Math.cos(perpAngle) * col.r, col.y - Math.sin(perpAngle) * col.r);
-      ctx.lineTo(col.x - Math.cos(perpAngle) * (col.r+10) + Math.cos(angle) * shadowLen,
-                 col.y - Math.sin(perpAngle) * (col.r+10) + Math.sin(angle) * shadowLen);
-      ctx.lineTo(col.x + Math.cos(perpAngle) * (col.r+10) + Math.cos(angle) * shadowLen,
-                 col.y + Math.sin(perpAngle) * (col.r+10) + Math.sin(angle) * shadowLen);
-      ctx.closePath();
-      ctx.fill();
+      ctx.lineTo(col.x - Math.cos(perpAngle)*(col.r+10) + Math.cos(angle)*shadowLen,
+                 col.y - Math.sin(perpAngle)*(col.r+10) + Math.sin(angle)*shadowLen);
+      ctx.lineTo(col.x + Math.cos(perpAngle)*(col.r+10) + Math.cos(angle)*shadowLen,
+                 col.y + Math.sin(perpAngle)*(col.r+10) + Math.sin(angle)*shadowLen);
+      ctx.closePath(); ctx.fill();
     }
   }
   ctx.restore();
@@ -817,8 +790,7 @@ function drawShadows(px, py, pAngle) {
 
 function drawCharacter(px, py, pAngle, color, name, isLocal) {
   const cx = canvas.width / 2, cy = canvas.height / 2;
-  const screenX = cx + (px - localPlayer.x);
-  const screenY = cy + (py - localPlayer.y);
+  const screenX = cx + (px - localPlayer.x), screenY = cy + (py - localPlayer.y);
 
   let totalLight = isInFlashlight(px, py, localPlayer.x, localPlayer.y, localPlayer.angle);
   for (const rp of Object.values(remotePlayers)) {
@@ -838,9 +810,7 @@ function drawCharacter(px, py, pAngle, color, name, isLocal) {
   playerGlow.addColorStop(0, 'rgba(180, 160, 130, 0.15)');
   playerGlow.addColorStop(1, 'rgba(0, 0, 0, 0)');
   ctx.fillStyle = playerGlow;
-  ctx.beginPath();
-  ctx.arc(0, 0, 28, 0, Math.PI * 2);
-  ctx.fill();
+  ctx.beginPath(); ctx.arc(0, 0, 28, 0, Math.PI * 2); ctx.fill();
 
   const bodyGrad = ctx.createRadialGradient(-2, -2, 0, 0, 0, PLAYER_RADIUS);
   if (isLocal) {
@@ -848,31 +818,22 @@ function drawCharacter(px, py, pAngle, color, name, isLocal) {
     bodyGrad.addColorStop(0.7, '#5c5045');
     bodyGrad.addColorStop(1, '#3a332c');
   } else {
-    const r = parseInt(color.slice(1,3),16);
-    const g = parseInt(color.slice(3,5),16);
-    const b = parseInt(color.slice(5,7),16);
+    const r = parseInt(color.slice(1,3),16), g = parseInt(color.slice(3,5),16), b = parseInt(color.slice(5,7),16);
     bodyGrad.addColorStop(0, `rgb(${Math.floor(r*0.7)}, ${Math.floor(g*0.7)}, ${Math.floor(b*0.7)})`);
     bodyGrad.addColorStop(0.7, `rgb(${Math.floor(r*0.4)}, ${Math.floor(g*0.4)}, ${Math.floor(b*0.4)})`);
     bodyGrad.addColorStop(1, `rgb(${Math.floor(r*0.2)}, ${Math.floor(g*0.2)}, ${Math.floor(b*0.2)})`);
   }
   ctx.fillStyle = bodyGrad;
-  ctx.beginPath();
-  ctx.arc(0, 0, PLAYER_RADIUS, 0, Math.PI * 2);
-  ctx.fill();
+  ctx.beginPath(); ctx.arc(0, 0, PLAYER_RADIUS, 0, Math.PI * 2); ctx.fill();
 
   ctx.strokeStyle = isLocal ? 'rgba(200, 185, 155, 0.4)' : `${color}66`;
   ctx.lineWidth = 1;
-  ctx.beginPath();
-  ctx.arc(0, 0, PLAYER_RADIUS, 0, Math.PI * 2);
-  ctx.stroke();
+  ctx.beginPath(); ctx.arc(0, 0, PLAYER_RADIUS, 0, Math.PI * 2); ctx.stroke();
 
   const headGrad = ctx.createRadialGradient(-1, -PLAYER_RADIUS-3, 0, 0, -PLAYER_RADIUS-3, 6);
-  headGrad.addColorStop(0, '#c4a882');
-  headGrad.addColorStop(1, '#7a6a58');
+  headGrad.addColorStop(0, '#c4a882'); headGrad.addColorStop(1, '#7a6a58');
   ctx.fillStyle = headGrad;
-  ctx.beginPath();
-  ctx.arc(0, -PLAYER_RADIUS - 3, 6, 0, Math.PI * 2);
-  ctx.fill();
+  ctx.beginPath(); ctx.arc(0, -PLAYER_RADIUS - 3, 6, 0, Math.PI * 2); ctx.fill();
 
   ctx.fillStyle = '#e8dcc8';
   ctx.beginPath();
@@ -888,9 +849,7 @@ function drawCharacter(px, py, pAngle, color, name, isLocal) {
   lensGlow.addColorStop(0.5, isLocal ? `rgba(255, 220, 140, ${0.3 * flicker})` : `${color}44`);
   lensGlow.addColorStop(1, 'rgba(255, 240, 180, 0)');
   ctx.fillStyle = lensGlow;
-  ctx.beginPath();
-  ctx.arc(6.5, -PLAYER_RADIUS - 9, 5, 0, Math.PI * 2);
-  ctx.fill();
+  ctx.beginPath(); ctx.arc(6.5, -PLAYER_RADIUS - 9, 5, 0, Math.PI * 2); ctx.fill();
 
   ctx.globalAlpha = 1;
   ctx.restore();
@@ -900,8 +859,7 @@ function drawCharacter(px, py, pAngle, color, name, isLocal) {
     ctx.globalAlpha = Math.min(0.8, totalLight);
     ctx.fillStyle = isLocal ? '#aaa' : color;
     ctx.font = '10px "Courier New", monospace';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'bottom';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
     ctx.fillText(name, screenX, screenY - PLAYER_RADIUS - 14);
     ctx.globalAlpha = 1;
     ctx.restore();
@@ -911,11 +869,7 @@ function drawCharacter(px, py, pAngle, color, name, isLocal) {
 function draw() {
   ctx.fillStyle = '#000';
   ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-  if (!started) {
-    requestAnimationFrame(draw);
-    return;
-  }
+  if (!started) { requestAnimationFrame(draw); return; }
 
   ctx.globalCompositeOperation = 'lighter';
   drawFlashlightPass(localPlayer.x, localPlayer.y, localPlayer.angle, null, 1);
@@ -943,28 +897,21 @@ function draw() {
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
   ctx.fillStyle = 'rgba(0, 0, 0, 0.03)';
-  for (let y = 0; y < canvas.height; y += 3) {
-    ctx.fillRect(0, y, canvas.width, 1);
-  }
+  for (let y = 0; y < canvas.height; y += 3) ctx.fillRect(0, y, canvas.width, 1);
 
   if (!connected) {
     ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     ctx.fillStyle = '#8b0000';
     ctx.font = 'bold 16px "Courier New", monospace';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
     ctx.fillText('CONNECTION LOST — RECONNECTING...', canvas.width/2, canvas.height/2);
   }
 
   requestAnimationFrame(draw);
 }
 
-function gameLoop() {
-  update();
-  requestAnimationFrame(gameLoop);
-}
-
+function gameLoop() { update(); requestAnimationFrame(gameLoop); }
 gameLoop();
 draw();
 </script>
