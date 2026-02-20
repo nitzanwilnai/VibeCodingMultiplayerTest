@@ -32,6 +32,26 @@ const SPAWNS = [
   { x: 700, y: 400 },
 ];
 
+// ── Puzzle State (shared across all players) ────────────────
+// The correct sequence is 1,2,3,4,5
+// puzzleProgress tracks how many stones have been correctly activated
+let puzzleProgress = 0; // 0 = none, 5 = all done
+let doorOpen = false;
+let puzzleResetFlash = 0; // timestamp of last reset (for red flash)
+
+// Stone positions (laid out in a path leading toward the door)
+const STONE_SIZE = 32;
+const stones = [
+  { x: 300, y: 620, num: 1 },
+  { x: 350, y: 540, num: 2 },
+  { x: 400, y: 460, num: 3 },
+  { x: 450, y: 380, num: 4 },
+  { x: 500, y: 300, num: 5 },
+];
+
+// Door position (top wall, center)
+const DOOR = { x: 400, y: 8, width: 60, height: 16 };
+
 function broadcast(data, excludeWs) {
   const msg = JSON.stringify(data);
   wss.clients.forEach((client) => {
@@ -50,6 +70,45 @@ function broadcastAll(data) {
   });
 }
 
+function resetPuzzle() {
+  puzzleProgress = 0;
+  doorOpen = false;
+  puzzleResetFlash = Date.now();
+  broadcastAll({ type: "puzzle_update", progress: puzzleProgress, doorOpen, reset: true });
+}
+
+function checkStoneStep(px, py) {
+  if (doorOpen) return; // puzzle already solved
+
+  for (const stone of stones) {
+    const dx = px - stone.x;
+    const dy = py - stone.y;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+    const stepRadius = STONE_SIZE / 2 + 10; // player radius
+
+    if (dist < stepRadius) {
+      // Player is on this stone
+      const expectedNum = puzzleProgress + 1;
+
+      if (stone.num === expectedNum) {
+        // Correct! Advance
+        puzzleProgress++;
+        if (puzzleProgress >= 5) {
+          doorOpen = true;
+        }
+        broadcastAll({ type: "puzzle_update", progress: puzzleProgress, doorOpen, reset: false });
+      } else if (stone.num !== puzzleProgress && stone.num !== expectedNum) {
+        // Wrong stone — only reset if they step on one that's NOT already activated
+        // and NOT the next expected one
+        if (stone.num > expectedNum || stone.num < puzzleProgress) {
+          resetPuzzle();
+        }
+      }
+      return; // only process one stone per check
+    }
+  }
+}
+
 wss.on("connection", (ws) => {
   const id = nextId++;
   const color = COLORS[(id - 1) % COLORS.length];
@@ -58,7 +117,14 @@ wss.on("connection", (ws) => {
 
   players.set(id, player);
 
-  ws.send(JSON.stringify({ type: "init", id, players: Object.fromEntries(players) }));
+  // Send init with puzzle state
+  ws.send(JSON.stringify({
+    type: "init",
+    id,
+    players: Object.fromEntries(players),
+    puzzle: { progress: puzzleProgress, doorOpen, stones, door: DOOR },
+  }));
+
   broadcast({ type: "player_joined", id, player }, ws);
   console.log(`Player ${id} connected (${wss.clients.size} online)`);
 
@@ -72,6 +138,8 @@ wss.on("connection", (ws) => {
           p.y = msg.y;
           p.angle = msg.angle;
           broadcast({ type: "player_moved", id, x: msg.x, y: msg.y, angle: msg.angle }, ws);
+          // Check if player stepped on a stone
+          checkStoneStep(msg.x, msg.y);
         }
       }
       if (msg.type === "set_name") {
